@@ -1,0 +1,14 @@
+class EBook:
+  def __init__(self, filename):
+    self.textFile = open(filename, r)
+
+  def get_ebook_content(self)
+    self.text = self.textFile.read() = 
+    
+  def findStartOfEBook(self):
+    return self.textFile.read().find("*** START OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***")
+  
+  def findEndOfEBook(self):
+    return self.textFile.read().find("*** END OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***")
+    
+eBookTextFile.find("*** START OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***")
