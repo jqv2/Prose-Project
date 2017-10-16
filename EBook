@@ -1,0 +1,22 @@
+class EBook:
+  def __init__(self, filename):
+    self.textFile = open(filename, 'r', encoding = 'utf-8')
+    self.rawText = ""
+    self.text = ""
+
+  def set_raw_ebook_content(self):
+    self.rawText = self.textFile.read()
+      
+  def set_truncated_ebook_content(self):
+    self.text = self.rawText[self.findStartOfEBook():self.findEndOfEBook()]
+    
+  def findStartOfEBook(self):
+    return self.rawText.find("*** START OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***")+len("*** START OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***")
+  
+  def findEndOfEBook(self):
+    return self.rawText.find("*** END OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***")
+
+testBook = EBook("A_TALE_OF_TWO_CITIES.txt")
+testBook.set_raw_ebook_content()
+testBook.set_truncated_ebook_content()
+print(testBook.text)
