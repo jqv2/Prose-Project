@@ -1,22 +1,108 @@
+import re
+from bs4 import BeautifulSoup
+import urllib.request
+
 class EBook:
-  def __init__(self, filename):
-    self.textFile = open(filename, 'r', encoding = 'utf-8')
-    self.rawText = ""
-    self.text = ""
+  def __init__(self, filenameOrUrl):
+    if("http://www.gutenberg.org/" in filenameOrUrl):
+      self.textFile = "URL"
+      self.text = self.fetch_ebook(filenameOrUrl)
+    else:
+      self.textFile = open(filenameOrUrl, 'r', encoding = 'utf-8')
+      self.text = ""
 
-  def set_raw_ebook_content(self):
-    self.rawText = self.textFile.read()
+  #WORKS
+  def extractRawEbookContent(self):
+    return self.textFile.read()
+
+  #WORKS
+  def setTruncatedEbookContentForFile(self):
+    rawText = self.extractRawEbookContent()
+    self.text = rawText[self.findStartOfEBook(rawText):self.findEndOfEBook(rawText)]
+
+  def truncateEbookContentForURL(self, plaintext):
+    return plaintext[self.findStartOfEBook(plaintext):self.findEndOfEBook(plaintext)]
+
+  def getChapterText(self, chapterTitle, nextChapterTitle):
+    return self.text[self.findStartOfChapter(chapterTitle):self.findEndOfChapter(nextChapterTitle)]
+
+  #WORKS
+  def findStartOfEBook(self, rawText):
+    return rawText.find("*** START OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***") + len("*** START OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***")
+
+  #WORKS
+  def findEndOfEBook(self, rawText):
+    return rawText.find("*** END OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***")
+
+  #WORKS
+  def findStartOfChapter(self, chapterTitle):
+    return self.text.find(chapterTitle)
+
+  #WORKS     
+  def findEndOfChapter(self, nextChapterTitle):
+    return self.text.find(nextChapterTitle)
+
+  #WORKS
+  def calculateWordFrequencies(self, chapterWords):
+    chapterWordFrequencies = {}
+    for word in chapterWords:
+      if word in chapterWordFrequencies.keys():
+        chapterWordFrequencies[word] += 1
+      else:
+        chapterWordFrequencies[word] = 1
+    return chapterWordFrequencies
+
+  #https://stackoverflow.com/questions/7340019/sort-values-and-return-list-of-keys-from-dict-python
+  def sortWordFrequencies(self, chapterWordFrequencies):
+    return sorted(chapterWordFrequencies, key=chapterWordFrequencies.get, reverse = True)
+
+  #WORKS
+  #To be able to strip whitespace AND punctuation: https://stackoverflow.com/questions/19894478/regex-punctuation-split-python
+  def findWords(self, chapterText):
+    words = []
+    splitText = re.split('\W+', chapterText)
+    for word in splitText:
+      words.append(word.lower())
+    return words
+
+  def findTopTwentyWordFrequencies(self, chapterWordFrequencies):
+    topTwentyWordFrequencies = {}
+    ranking = 1
+    for word in self.sortWordFrequencies(chapterWordFrequencies):
+      if ranking <= 20:
+        topTwentyWordFrequencies[word] = chapterWordFrequencies[word]
+      ranking += 1
+    return topTwentyWordFrequencies
       
-  def set_truncated_ebook_content(self):
-    self.text = self.rawText[self.findStartOfEBook():self.findEndOfEBook()]
-    
-  def findStartOfEBook(self):
-    return self.rawText.find("*** START OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***")+len("*** START OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***")
-  
-  def findEndOfEBook(self):
-    return self.rawText.find("*** END OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***")
+  def calculateTopTwentyWordsPerChapter(self, chapterNames):
+    if self.textFile != "URL":
+      self.setTruncatedEbookContentForFile()
+    allChapterWordFrequencies = []
+    chapterCount = 0
+    while chapterCount < len(chapterNames) - 1:
+      chapterText = self.getChapterText(chapterNames[chapterCount], chapterNames[chapterCount + 1])
+      chapterWords = self.findWords(chapterText)
+      chapterWordFrequencies = self.calculateWordFrequencies(chapterWords)
+      topTwentyChapterWords = self.findTopTwentyWordFrequencies(chapterWordFrequencies)
+      allChapterWordFrequencies.append(topTwentyChapterWords)
+      chapterCount += 1
+    return allChapterWordFrequencies
 
-testBook = EBook("A_TALE_OF_TWO_CITIES.txt")
-testBook.set_raw_ebook_content()
-testBook.set_truncated_ebook_content()
-print(testBook.text)
+  def fetch_ebook(self, url):
+    websiteHTML = urllib.request.urlopen(url).read()
+    plaintext = BeautifulSoup(websiteHTML, 'html.parser')
+    return self.truncateEbookContentForURL(plaintext.text)
+  
+chapterNames = ["I. The Period", "II. The Mail", "III. The Night Shadows", "IV. The Preparation", "V. The Wine-shop", "VI. The Shoemaker", "I. Five Years Later", "II. A Sight", "III. A Disappointment", "IV. Congratulatory", "V. The Jackal", "VI. Hundreds of People", "VII. Monseigneur in Town", "VIII. Monseigneur in the Country", "IX. The Gorgon’s Head", "X. Two Promises", "XI. A Companion Picture", "XII. The Fellow of Delicacy", "XIII. The Fellow of No Delicacy", "XIV. The Honest Tradesman", "XV. Knitting", "XVI. Still Knitting", "XVII. One Night", "XVIII. Nine Days", "XIX. An Opinion", "XX. A Plea", "XXI. Echoing Footsteps", "XXII. The Sea Still Rises", "XXIII. Fire Rises", "XXIV. Drawn to the Loadstone Rock", "I. In Secret", "II. The Grindstone", "III. The Shadow", "IV. Calm in Storm", "V. The Wood-Sawyer", "VI. Triumph", "VII. A Knock at the Door", "VIII. A Hand at Cards", "IX. The Game Made", "X. The Substance of the Shadow", "XI. Dusk", "XII. Darkness", "XIII. Fifty-two", "XIV. The Knitting Done", "XV. The Footsteps Die Out For Ever", "End of the Project Gutenberg EBook of A Tale of Two Cities, by Charles Dickens"]
+
+fileTestBook = EBook("A_TALE_OF_TWO_CITIES.txt")
+chapterAnalysis = fileTestBook.calculateTopTwentyWordsPerChapter(chapterNames)
+print("FILE TEST")
+for chapter in range(len(chapterAnalysis)):
+  print("Chapter ", chapterNames[chapter], "\n", chapterAnalysis[chapter], "\n")
+
+print("URL TEST")
+URLtestBook = EBook("http://www.gutenberg.org/files/98/98-h/98-h.htm")
+chapterAnalysis = URLtestBook.calculateTopTwentyWordsPerChapter(chapterNames)
+for chapter in range(len(chapterAnalysis)):
+  print("Chapter ", chapterNames[chapter], "\n", chapterAnalysis[chapter], "\n")
