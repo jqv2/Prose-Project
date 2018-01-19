@@ -11,11 +11,9 @@ class EBook:
       self.textFile = open(filenameOrUrl, 'r', encoding = 'utf-8')
       self.text = ""
 
-  #WORKS
   def extractRawEbookContent(self):
     return self.textFile.read()
 
-  #WORKS
   def setTruncatedEbookContentForFile(self):
     rawText = self.extractRawEbookContent()
     self.text = rawText[self.findStartOfEBook(rawText):self.findEndOfEBook(rawText)]
@@ -26,23 +24,18 @@ class EBook:
   def getChapterText(self, chapterTitle, nextChapterTitle):
     return self.text[self.findStartOfChapter(chapterTitle):self.findEndOfChapter(nextChapterTitle)]
 
-  #WORKS
   def findStartOfEBook(self, rawText):
     return rawText.find("*** START OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***") + len("*** START OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***")
 
-  #WORKS
   def findEndOfEBook(self, rawText):
     return rawText.find("*** END OF THIS PROJECT GUTENBERG EBOOK A TALE OF TWO CITIES ***")
 
-  #WORKS
   def findStartOfChapter(self, chapterTitle):
     return self.text.find(chapterTitle)
-
-  #WORKS     
+    
   def findEndOfChapter(self, nextChapterTitle):
     return self.text.find(nextChapterTitle)
 
-  #WORKS
   def calculateWordFrequencies(self, chapterWords):
     chapterWordFrequencies = {}
     for word in chapterWords:
@@ -56,7 +49,6 @@ class EBook:
   def sortWordFrequencies(self, chapterWordFrequencies):
     return sorted(chapterWordFrequencies, key=chapterWordFrequencies.get, reverse = True)
 
-  #WORKS
   #To be able to strip whitespace AND punctuation: https://stackoverflow.com/questions/19894478/regex-punctuation-split-python
   def findWords(self, chapterText):
     words = []
