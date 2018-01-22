@@ -59,12 +59,28 @@ class EBook:
 
   def findTopTwentyWordFrequencies(self, chapterWordFrequencies):
     topTwentyWordFrequencies = {}
+    self.removeInsignificantWords(chapterWordFrequencies)
     ranking = 1
     for word in self.sortWordFrequencies(chapterWordFrequencies):
       if ranking <= 20:
         topTwentyWordFrequencies[word] = chapterWordFrequencies[word]
       ranking += 1
     return topTwentyWordFrequencies
+
+  def removeInsignificantWords(self, chapterWordFrequencies):
+    insignificantWords = {"the", "be", "to", "of", "and", "a", "in", "that", "have", "i",
+                          "it", "for", "not", "on", "with", "he", "as", "you", "do", "at",
+                          "this", "but", "his", "by", "from", "they", "we", "say", "her", "she",
+                          "or", "an", "will", "my", "one", "all", "would", "there", "their", "what",
+                          "so", "up", "out", "if", "about", "who", "get", "which", "go", "me",
+                          "him", "himself", "her", "herself", "themself", "themselves", "oneself",
+                          "is", "was", "s", "t", "are", "is", "were", "when", "what", "why", "them",
+                          "than", "then", "some", "none", "shall", "has", "your", "mine", "been",
+                          "had", "am", "such", "can", "don", "could", "would", "should", "being",
+                          "our", "us", "ll"}
+    for word in insignificantWords:
+      if word in chapterWordFrequencies:
+        chapterWordFrequencies.pop(word)
       
   def calculateTopTwentyWordsPerChapter(self, chapterNames):
     if self.textFile != "URL":
